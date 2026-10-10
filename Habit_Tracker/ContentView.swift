@@ -6,19 +6,68 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var habits: [Habit]
+    @State private var showingAddHabit = false
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            Group {
+                if habits.isEmpty {
+                    ContentUnavailableView(
+                        "No Habits Yet",
+                        systemImage: "checkmark.circle",
+                        description: Text("Tap the + button to add your first habit. ")
+                    )
+                } else {
+                    List {
+                        ForEach(habits) { habit in
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(habit.name)
+                                        .font(.headline)
+                                    Text("Completed \(habit.timesCompleted) times")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Button {
+                                    habit.timesCompleted += 1
+                                } label: {
+                                    Image(systemName: "checkmark.circle")
+                                        .font(.title2)
+                                        .foregroundStyle(.green)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .onDelete(perform: deleteHabits)
+                    }
+                }
+            }
+            .navigationTitle("My Habits")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingAddHabit = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingAddHabit) {
+                AddHabitView()
+            }
         }
-        .padding()
     }
-}
-
-#Preview {
-    ContentView()
+    
+    private func deleteHabits(offsets: IndexSet) {
+        for index in offsets {
+            let habitToDelete = habits[index]
+            modelContext.delete(habitToDelete)
+        }
+    }
 }

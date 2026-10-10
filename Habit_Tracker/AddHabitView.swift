@@ -11,7 +11,7 @@ import SwiftData
 struct AddHabitView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @State private var habitName = " "
+    @State private var habitName = ""
     
     
     var body: some View {
